@@ -1,0 +1,1074 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ContentPulse Story Execution Order</title>
+  <style>
+    :root { color-scheme: light dark; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      margin: 24px;
+      line-height: 1.35;
+    }
+    h1 { font-size: 20px; margin: 0 0 10px 0; }
+    .hint { margin: 0 0 14px 0; opacity: .8; font-size: 13px; }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: end;
+      margin: 0 0 16px 0;
+      padding: 12px;
+      border: 1px solid rgba(127,127,127,0.35);
+      border-radius: 10px;
+      background: rgba(127,127,127,0.06);
+    }
+    .control {
+      display: grid;
+      gap: 6px;
+      min-width: 180px;
+    }
+    label {
+      font-size: 12px;
+      opacity: .85;
+    }
+    select, input {
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid rgba(127,127,127,0.35);
+      background: rgba(127,127,127,0.08);
+      color: inherit;
+      outline: none;
+    }
+    input[type="search"] { min-width: 280px; }
+    .btn {
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(127,127,127,0.35);
+      background: rgba(127,127,127,0.10);
+      color: inherit;
+      cursor: pointer;
+    }
+    .stats {
+      margin-left: auto;
+      font-size: 12px;
+      opacity: .85;
+      padding: 0 2px 2px 2px;
+      white-space: nowrap;
+    }
+    .wrap {
+      overflow-x: auto;
+      border: 1px solid rgba(127,127,127,0.35);
+      border-radius: 10px;
+    }
+    table { border-collapse: collapse; width: 100%; min-width: 1400px; }
+    thead th {
+      position: sticky;
+      top: 0;
+      background: rgba(127,127,127,0.10);
+      backdrop-filter: blur(6px);
+      text-align: left;
+      font-weight: 600;
+      border-bottom: 1px solid rgba(127,127,127,0.35);
+      padding: 10px 12px;
+      white-space: nowrap;
+    }
+    tbody td {
+      border-bottom: 1px solid rgba(127,127,127,0.22);
+      padding: 10px 12px;
+      vertical-align: top;
+    }
+    tbody tr:hover { background: rgba(127,127,127,0.06); }
+    .num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .nowrap { white-space: nowrap; }
+    code {
+      padding: 1px 6px;
+      border-radius: 6px;
+      background: rgba(127,127,127,0.12);
+    }
+    .labels { min-width: 420px; }
+    .tag {
+      display: inline-block;
+      padding: 2px 8px;
+      margin: 0 6px 6px 0;
+      border-radius: 999px;
+      border: 1px solid rgba(127,127,127,0.35);
+      background: rgba(127,127,127,0.10);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <h1>Story Execution Order</h1>
+  <p class="hint">Filter by Epic, Priority, and label dimensions. Search matches Story + Summary + Story ID.</p>
+
+  <div class="controls" id="controls">
+    <div class="control">
+      <label for="q">Search</label>
+      <input id="q" type="search" placeholder="e.g., analytics, auth, Redis, GraphQL..." />
+    </div>
+
+    <div class="control">
+      <label for="epic">Epic</label>
+      <select id="epic">
+        <option value="">All</option>
+<option value="AI Strategist">AI Strategist</option>
+<option value="API Keys">API Keys</option>
+<option value="Analytics">Analytics</option>
+<option value="Auth">Auth</option>
+<option value="Channel Analytics">Channel Analytics</option>
+<option value="Channels">Channels</option>
+<option value="Connectors">Connectors</option>
+<option value="Dashboard">Dashboard</option>
+<option value="Foundation">Foundation</option>
+<option value="Quality">Quality</option>
+      </select>
+    </div>
+
+    <div class="control">
+      <label for="priority">Priority</label>
+      <select id="priority">
+        <option value="">All</option>
+<option value="P0">P0</option>
+<option value="P1">P1</option>
+<option value="P2">P2</option>
+      </select>
+    </div>
+
+    <div class="control">
+      <label for="type">Type</label>
+      <select id="type">
+        <option value="">All</option>
+<option value="type:chore">type:chore</option>
+<option value="type:docs">type:docs</option>
+<option value="type:feature">type:feature</option>
+      </select>
+    </div>
+
+    <div class="control">
+      <label for="area">Area</label>
+      <select id="area">
+        <option value="">All</option>
+<option value="area:api-graphql">area:api-graphql</option>
+<option value="area:api-rest">area:api-rest</option>
+<option value="area:auth">area:auth</option>
+<option value="area:ci-cd">area:ci-cd</option>
+<option value="area:connectors">area:connectors</option>
+<option value="area:db">area:db</option>
+<option value="area:docs">area:docs</option>
+<option value="area:frontend">area:frontend</option>
+<option value="area:jobs">area:jobs</option>
+<option value="area:observability">area:observability</option>
+<option value="area:service">area:service</option>
+      </select>
+    </div>
+
+    <div class="control">
+      <label for="sprint">Sprint</label>
+      <select id="sprint">
+        <option value="">All</option>
+<option value="S0">S0</option>
+<option value="S1">S1</option>
+<option value="S2">S2</option>
+<option value="S3">S3</option>
+<option value="S4">S4</option>
+<option value="S5">S5</option>
+<option value="S6">S6</option>
+      </select>
+    </div>
+
+    <button class="btn" id="reset" type="button">Reset</button>
+    <div class="stats" id="stats"></div>
+  </div>
+
+  <div class="wrap">
+    <table>
+      <thead>
+        <tr>
+          <th style="text-align:right;">Order</th>
+          <th>Story ID</th>
+          <th>Story</th>
+          <th>Epic</th>
+          <th>Priority</th>
+          <th style="text-align:right;">Points</th>
+          <th>Final Summary (Build Order)</th>
+          <th>Labels</th>
+        </tr>
+      </thead>
+      <tbody id="tbody">
+
+        <tr data-epic="Foundation"
+            data-priority="P0"
+            data-type="type:feature"
+            data-area="area:service"
+            data-sprint="S0">
+          <td class="num">1</td>
+          <td class="nowrap"><code>US-001</code></td>
+          <td class="story">Initialize Monorepo &amp; Developer Tooling</td>
+          <td class="epic">Foundation</td>
+          <td class="nowrap prio">P0</td>
+          <td class="num">5</td>
+          <td class="summary">S0-1: Repo + tooling baseline before anything else</td>
+          <td class="labels"><span class="tag">type:feature</span> <span class="tag">prio:P0</span> <span class="tag">area:service</span> <span class="tag">sprint:S0</span> <span class="tag">status:ready</span></td>
+        </tr>
+        <tr data-epic="Foundation"
+            data-priority="P0"
+            data-type="type:chore"
+            data-area="area:ci-cd"
+            data-sprint="S0">
+          <td class="num">2</td>
+          <td class="nowrap"><code>US-002</code></td>
+          <td class="story">Set Up Local Infrastructure (Docker Compose)</td>
+          <td class="epic">Foundation</td>
+          <td class="nowrap prio">P0</td>
+          <td class="num">3</td>
+          <td class="summary">S0-2: Local Mongo/Redis running early to unblock dev</td>
+          <td class="labels"><span class="tag">type:chore</span> <span class="tag">prio:P0</span> <span class="tag">area:ci-cd</span> <span class="tag">sprint:S0</span> <span class="tag">status:ready</span></td>
+        </tr>
+        <tr data-epic="Foundation"
+            data-priority="P0"
+            data-type="type:feature"
+            data-area="area:service"
+            data-sprint="S0">
+          <td class="num">3</td>
+          <td class="nowrap"><code>US-004</code></td>
+          <td class="story">Design &amp; Implement Configuration Layer</td>
+          <td class="epic">Foundation</td>
+          <td class="nowrap prio">P0</td>
+          <td class="num">5</td>
+          <td class="summary">S0-3: Typed env + DB/Redis + logger wiring</td>
+          <td class="labels"><span class="tag">type:feature</span> <span class="tag">prio:P0</span> <span class="tag">area:service</span> <span class="tag">sprint:S0</span> <span class="tag">status:ready</span></td>
+        </tr>
+        <tr data-epic="Foundation"
+            data-priority="P0"
+            data-type="type:feature"
+            data-area="area:db"
+            data-sprint="S0">
+          <td class="num">4</td>
+          <td class="nowrap"><code>US-003</code></td>
+          <td class="story">Design &amp; Implement Database Models</td>
+          <td class="epic">Foundation</td>
+          <td class="nowrap prio">P0</td>
+          <td class="num">8</td>
+          <td class="summary">S0-4: Schemas/indexes first; everything depends on it</td>
+          <td class="labels"><span class="tag">type:feature</span> <span class="tag">prio:P0</span> <span class="tag">area:db</span> <span class="tag">sprint:S0</span> <span class="tag">status:ready</span></td>
+        </tr>
+        <tr data-epic="Quality"
+            data-priority="P2"
+            data-type="type:chore"
+            data-area="area:observability"
+            data-sprint="S0">
+          <td class="num">5</td>
+          <td class="nowrap"><code>US-905</code></td>
+          <td class="story">Structured Logging</td>
+          <td class="epic">Quality</td>
+          <td class="nowrap prio">P2</td>
+          <td class="num">3</td>
+          <td class="summary">S0-5: Debuggable system from day one (cheap + high ROI)</td>
+          <td class="labels"><span class="tag">type:chore</span> <span class="tag">prio:P2</span> <span class="tag">area:observability</span> <span class="tag">sprint:S0</span> <span class="tag">status:ready</span></td>
+        </tr>
+        <tr data-epic="Foundation"
+            data-priority="P0"
+            data-type="type:feature"
+            data-area="area:api-rest"
+            data-sprint="S0">
+          <td class="num">6</td>
+          <td class="nowrap"><code>US-005</code></td>
+          <td class="story">Design &amp; Implement API Server Skeleton</td>
+          <td class="epic">Foundation</td>
+          <td class="nowrap prio">P0</td>
+          <td class="num">5</td>
+          <td class="summary">S0-6: Express + Apollo entrypoint + health shell</td>
+          <td class="labels"><span class="tag">type:feature</span> <span class="tag">prio:P0</span> <span class="tag">area:api-rest</span> <span class="tag">sprint:S0</span> <span class="tag">status:ready</span></td>
+        </tr>
+        <tr data-epic="Foundation"
+            data-priority="P0"
+            data-type="type:feature"
+            data-area="area:api-rest"
+            data-sprint="S0">
+          <td class="num">7</td>
+          <td class="nowrap"><code>US-006</code></td>
+          <td class="story">Design REST API Route Structure &amp; Middleware Pipeline</td>
+          <td class="epic">Foundation</td>
+          <td class="nowrap prio">P0</td>
+          <td class="num">5</td>
+          <td class="summary">S0-7: Consistent REST pattern before endpoints multiply</td>
+          <td class="labels"><span class="tag">type:feature</span> <span class="tag">prio:P0</span> <span class="tag">area:api-rest</span> <span class="tag">sprint:S0</span> <span class="tag">status:ready</span></td>
+        </tr>
+        <tr data-epic="Foundation"
+            data-priority="P0"
+            data-type="type:feature"
+            data-area="area:api-graphql"
+            data-sprint="S0">
+          <td class="num">8</td>
+          <td class="nowrap"><code>US-007</code></td>
+          <td class="story">Design GraphQL Schema &amp; Resolver Structure</td>
+          <td class="epic">Foundation</td>
+          <td class="nowrap prio">P0</td>
+          <td class="num">5</td>
+          <td class="summary">S0-8: GraphQL scaffold; share same service layer</td>
+          <td class="labels"><span class="tag">type:feature</span> <span class="tag">prio:P0</span> <span class="tag">area:api-graphql</span> <span class="tag">sprint:S0</span> <span class="tag">status:ready</span></td>
+        </tr>
+        <tr data-epic="Quality"
+            data-priority="P0"
+            data-type="type:chore"
+            data-area="area:observability"
+            data-sprint="S0">
+          <td class="num">9</td>
+          <td class="nowrap"><code>US-903</code></td>
+          <td class="story">Health Check Endpoint</td>
+          <td class="epic">Quality</td>
+          <td class="nowrap prio">P0</td>
+          <td class="num">2</td>
+          <td class="summary">S0-9: Required for deploy + local confidence</td>
+          <td class="labels"><span class="tag">type:chore</span> <span class="tag">prio:P0</span> <span class="tag">area:observability</span> <span class="tag">sprint:S0</span> <span class="tag">status:ready</span></td>
+        </tr>
+        <tr data-epic="Foundation"
+            data-priority="P0"
+            data-type="type:feature"
+            data-area="area:frontend"
+            data-sprint="S0">
+          <td class="num">10</td>
+          <td class="nowrap"><code>US-010</code></td>
+          <td class="story">Scaffold React Frontend with Routing &amp; Layout</td>
+          <td class="epic">Foundation</td>
+          <td class="nowrap prio">P0</td>
+          <td class="num">5</td>
+          <td class="summary">S0-10: UI shell + routes to validate integration</td>
+          <td class="labels"><span class="tag">type:feature</span> <span class="tag">prio:P0</span> <span class="tag">area:frontend</span> <span class="tag">sprint:S0</span> <span class="tag">status:ready</span></td>
+        </tr>
+        <tr data-epic="Foundation"
+            data-priority="P0"
+            data-type="type:feature"
+            data-area="area:service"
+            data-sprint="S0">
+          <td class="num">11</td>
+          <td class="nowrap"><code>US-011</code></td>
+          <td class="story">Create Seed Data Script</td>
+          <td class="epic">Foundation</td>
+          <td class="nowrap prio">P0</td>
+          <td class="num">5</td>
+          <td class="summary">S0-11: Realistic data to build charts/tables fast</td>
+          <td class="labels"><span class="tag">type:feature</span> <span class="tag">prio:P0</span> <span class="tag">area:service</span> <span class="tag">sprint:S0</span> <span class="tag">status:ready</span></td>
+        </tr>
+        <tr data-epic="Foundation"
+            data-priority="P0"
+            data-type="type:feature"
+            data-area="area:service"
+            data-sprint="S0">
+          <td class="num">12</td>
+          <td class="nowrap"><code>US-013</code></td>
+          <td class="story">Set Up Testing Infrastructure</td>
+          <td class="epic">Foundation</td>
+          <td class="nowrap prio">P0</td>
+          <td class="num">3</td>
+          <td class="summary">S0-12: Tests available before business logic grows</td>
+          <td class="labels"><span class="tag">type:feature</span> <span class="tag">prio:P0</span> <span class="tag">area:service</span> <span class="tag">sprint:S0</span> <span class="tag">status:ready</span></td>
+        </tr>
+        <tr data-epic="Analytics"
+            data-priority="P0"
+            data-type="type:feature"
+            data-area="area:service"
+            data-sprint="S1">
+          <td class="num">13</td>
+          <td class="nowrap"><code>US-101</code></td>
+          <td class="story">View Cross-Platform Analytics Overview</td>
+          <td class="epic">Analytics</td>
+          <td class="nowrap prio">P0</td>
+          <td class="num">8</td>
+          <td class="summary">S1-1: Core value endpoint; enables most dashboard widgets</td>
+          <td class="labels"><span class="tag">type:feature</span> <span class="tag">prio:P0</span> <span class="tag">area:service</span> <span class="tag">sprint:S1</span> <span class="tag">status:ready</span></td>
+        </tr>
+        <tr data-epic="Analytics"
+            data-priority="P0"
+            data-type="type:feature"
+            data-area="area:service"
+            data-sprint="S1">
+          <td class="num">14</td>
+          <td class="nowrap"><code>US-102</code></td>
+          <td class="story">View Period-Over-Period Comparison</td>
+          <td class="epic">Analytics</td>
+          <td class="nowrap prio">P0</td>
+          <td class="num">5</td>
+          <td class="summary">S1-2: Needed for KPI trend arrows (dashboard P0)</td>
+          <td class="labels"><span class="tag">type:feature</span> <span class="tag">prio:P0</span> <span class="tag">area:service</span> <span class="tag">sprint:S1</span> <span class="tag">status:ready</span></td>
+        </tr>
+        <tr data-epic="Analytics"
+            data-priority="P0"
+            data-type="type:feature"
+            data-area="area:service"
+            data-sprint="S1">
+          <td class="num">15</td>
+          <td class="nowrap"><code>US-104</code></td>
+          <td class="story">View Engagement Time Series</td>
+          <td class="epic">Analytics</td>
+          <td class="nowrap prio">P0</td>
+          <td class="num">5</td>
+          <td class="summary">S1-3: Enables engagement chart (dashboard P0)</td>
+          <td class="labels"><span class="tag">type:feature</span> <span class="tag">prio:P0</span> <span class="tag">area:service</span> <span class="tag">sprint:S1</span> <span class="tag">status:ready</span></td>
+        </tr>
+        <tr data-epic="Analytics"
+            data-priority="P0"
+            data-type="type:feature"
+            data-area="area:service"
+            data-sprint="S1">
+          <td class="num">16</td>
+          <td class="nowrap"><code>US-103</code></td>
+          <td class="story">View Platform Breakdown</td>
+          <td class="epic">Analytics</td>
+          <td class="nowrap prio">P0</td>
+          <td class="num">5</td>
+          <td class="summary">S1-4: Enables platform pie + channel cards (dashboard P0)</td>
+          <td class="labels"><span class="tag">type:feature</span> <span class="tag">prio:P0</span> <span class="tag">area:service</span> <span class="tag">sprint:S1</span> <span class="tag">status:ready</span></td>
+        </tr>
+        <tr data-epic="Analytics"
+            data-priority="P0"
+            data-type="type:feature"
+            data-area="area:service"
+            data-sprint="S1">
+          <td class="num">17</td>
+          <td class="nowrap"><code>US-105</code></td>
+          <td class="story">View Top Performing Posts</td>
+          <td class="epic">Analytics</td>
+          <td class="nowrap prio">P0</td>
+          <td class="num">3</td>
+          <td class="summary">S1-5: Enables top posts table (dashboard P0)</td>
+          <td class="labels"><span class="tag">type:feature</span> <span class="tag">prio:P0</span> <span class="tag">area:service</span> <span class="tag">sprint:S1</span> <span class="tag">status:ready</span></td>
+        </tr>
+        <tr data-epic="Dashboard"
+            data-priority="P0"
+            data-type="type:feature"
+            data-area="area:frontend"
+            data-sprint="S1">
+          <td class="num">18</td>
+          <td class="nowrap"><code>US-701</code></td>
+          <td class="story">View KPI Cards with Trend Indicators</td>
+          <td class="epic">Dashboard</td>
+          <td class="nowrap prio">P0</td>
+          <td class="num">5</td>
+          <td class="summary">S1-6: UI for overview KPIs + trend</td>
+          <td class="labels"><span class="tag">type:feature</span> <span class="tag">prio:P0</span> <span class="tag">area:frontend</span> <span class="tag">sprint:S1</span> <span class="tag">status:ready</span></td>
+        </tr>
+        <tr data-epic="Dashboard"
+            data-priority="P0"
+            data-type="type:feature"
+            data-area="area:frontend"
+            data-sprint="S1">
+          <td class="num">19</td>
+          <td class="nowrap"><code>US-704</code></td>
+          <td class="story">Filter Analytics by Date Range</td>
+          <td class="epic">Dashboard</td>
+          <td class="nowrap prio">P0</td>
+          <td class="num">3</td>
+          <td class="summary">S1-7: Filter drives all overview panels</td>
+          <td class="labels"><span class="tag">type:feature</span> <span class="tag">prio:P0</span> <span class="tag">area:frontend</span> <span class="tag">sprint:S1</span> <span class="tag">status:ready</span></td>
+        </tr>
+        <tr data-epic="Dashboard"
+            data-priority="P0"
+            data-type="type:feature"
+            data-area="area:frontend"
+            data-sprint="S1">
+          <td class="num">20</td>
+          <td class="nowrap"><code>US-702</code></td>
+          <td class="story">View Engagement Trend Chart</td>
+          <td class="epic">Dashboard</td>
+          <td class="nowrap prio">P0</td>
+          <td class="num">5</td>
+          <td class="summary">S1-8: Main visual proof of value</td>
+          <td class="labels"><span class="tag">type:feature</span> <span class="tag">prio:P0</span> <span class="tag">area:frontend</span> <span class="tag">sprint:S1</span> <span class="tag">status:ready</span></td>
+        </tr>
+        <tr data-epic="Dashboard"
+            data-priority="P0"
+            data-type="type:feature"
+            data-area="area:frontend"
+            data-sprint="S1">
+          <td class="num">21</td>
+          <td class="nowrap"><code>US-703</code></td>
+          <td class="story">View Platform Breakdown Chart</td>
+          <td class="epic">Dashboard</td>
+          <td class="nowrap prio">P0</td>
+          <td class="num">3</td>
+          <td class="summary">S1-9: Quick platform insight</td>
+          <td class="labels"><span class="tag">type:feature</span> <span class="tag">prio:P0</span> <span class="tag">area:frontend</span> <span class="tag">sprint:S1</span> <span class="tag">status:ready</span></td>
+        </tr>
+        <tr data-epic="Dashboard"
+            data-priority="P0"
+            data-type="type:feature"
+            data-area="area:frontend"
+            data-sprint="S1">
+          <td class="num">22</td>
+          <td class="nowrap"><code>US-705</code></td>
+          <td class="story">View Top Posts Table</td>
+          <td class="epic">Dashboard</td>
+          <td class="nowrap prio">P0</td>
+          <td class="num">3</td>
+          <td class="summary">S1-10: Actionable “what worked” list</td>
+          <td class="labels"><span class="tag">type:feature</span> <span class="tag">prio:P0</span> <span class="tag">area:frontend</span> <span class="tag">sprint:S1</span> <span class="tag">status:ready</span></td>
+        </tr>
+        <tr data-epic="Dashboard"
+            data-priority="P2"
+            data-type="type:feature"
+            data-area="area:frontend"
+            data-sprint="S1">
+          <td class="num">23</td>
+          <td class="nowrap"><code>US-708</code></td>
+          <td class="story">Handle Loading and Error States</td>
+          <td class="epic">Dashboard</td>
+          <td class="nowrap prio">P2</td>
+          <td class="num">3</td>
+          <td class="summary">S1-11: Ship-quality UX polish once core renders</td>
+          <td class="labels"><span class="tag">type:feature</span> <span class="tag">prio:P2</span> <span class="tag">area:frontend</span> <span class="tag">sprint:S1</span> <span class="tag">status:ready</span></td>
+        </tr>
+        <tr data-epic="Channels"
+            data-priority="P0"
+            data-type="type:feature"
+            data-area="area:service"
+            data-sprint="S2">
+          <td class="num">24</td>
+          <td class="nowrap"><code>US-201</code></td>
+          <td class="story">Connect Instagram Account</td>
+          <td class="epic">Channels</td>
+          <td class="nowrap prio">P0</td>
+          <td class="num">8</td>
+          <td class="summary">S2-1: First real data source connection</td>
+          <td class="labels"><span class="tag">type:feature</span> <span class="tag">prio:P0</span> <span class="tag">area:service</span> <span class="tag">sprint:S2</span> <span class="tag">status:ready</span></td>
+        </tr>
+        <tr data-epic="Channels"
+            data-priority="P0"
+            data-type="type:feature"
+            data-area="area:service"
+            data-sprint="S2">
+          <td class="num">25</td>
+          <td class="nowrap"><code>US-202</code></td>
+          <td class="story">Connect LinkedIn Account</td>
+          <td class="epic">Channels</td>
+          <td class="nowrap prio">P0</td>
+          <td class="num">8</td>
+          <td class="summary">S2-2: Second platform unlocks cross-platform value</td>
+          <td class="labels"><span class="tag">type:feature</span> <span class="tag">prio:P0</span> <span class="tag">area:service</span> <span class="tag">sprint:S2</span> <span class="tag">status:ready</span></td>
+        </tr>
+        <tr data-epic="Channels"
+            data-priority="P0"
+            data-type="type:feature"
+            data-area="area:service"
+            data-sprint="S2">
+          <td class="num">26</td>
+          <td class="nowrap"><code>US-203</code></td>
+          <td class="story">List Connected Channels</td>
+          <td class="epic">Channels</td>
+          <td class="nowrap prio">P0</td>
+          <td class="num">3</td>
+          <td class="summary">S2-3: Required for channel cards + navigation</td>
+          <td class="labels"><span class="tag">type:feature</span> <span class="tag">prio:P0</span> <span class="tag">area:service</span> <span class="tag">sprint:S2</span> <span class="tag">status:ready</span></td>
+        </tr>
+        <tr data-epic="Channels"
+            data-priority="P1"
+            data-type="type:feature"
+            data-area="area:service"
+            data-sprint="S2">
+          <td class="num">27</td>
+          <td class="nowrap"><code>US-204</code></td>
+          <td class="story">Pause and Resume Channel Sync</td>
+          <td class="epic">Channels</td>
+          <td class="nowrap prio">P1</td>
+          <td class="num">3</td>
+          <td class="summary">S2-4: Needed before automated jobs go live</td>
+          <td class="labels"><span class="tag">type:feature</span> <span class="tag">prio:P1</span> <span class="tag">area:service</span> <span class="tag">sprint:S2</span> <span class="tag">status:ready</span></td>
+        </tr>
+        <tr data-epic="Channels"
+            data-priority="P1"
+            data-type="type:feature"
+            data-area="area:service"
+            data-sprint="S2">
+          <td class="num">28</td>
+          <td class="nowrap"><code>US-205</code></td>
+          <td class="story">Disconnect Channel</td>
+          <td class="epic">Channels</td>
+          <td class="nowrap prio">P1</td>
+          <td class="num">3</td>
+          <td class="summary">S2-5: Basic lifecycle management</td>
+          <td class="labels"><span class="tag">type:feature</span> <span class="tag">prio:P1</span> <span class="tag">area:service</span> <span class="tag">sprint:S2</span> <span class="tag">status:ready</span></td>
+        </tr>
+        <tr data-epic="Dashboard"
+            data-priority="P1"
+            data-type="type:feature"
+            data-area="area:frontend"
+            data-sprint="S2">
+          <td class="num">29</td>
+          <td class="nowrap"><code>US-706</code></td>
+          <td class="story">Navigate to Channel Detail</td>
+          <td class="epic">Dashboard</td>
+          <td class="nowrap prio">P1</td>
+          <td class="num">3</td>
+          <td class="summary">S2-6: UX wiring once channels exist</td>
+          <td class="labels"><span class="tag">type:feature</span> <span class="tag">prio:P1</span> <span class="tag">area:frontend</span> <span class="tag">sprint:S2</span> <span class="tag">status:ready</span></td>
+        </tr>
+        <tr data-epic="Channel Analytics"
+            data-priority="P1"
+            data-type="type:feature"
+            data-area="area:service"
+            data-sprint="S3">
+          <td class="num">30</td>
+          <td class="nowrap"><code>US-301</code></td>
+          <td class="story">View Per-Channel Time Series</td>
+          <td class="epic">Channel Analytics</td>
+          <td class="nowrap prio">P1</td>
+          <td class="num">5</td>
+          <td class="summary">S3-1: Channel detail foundation (time series)</td>
+          <td class="labels"><span class="tag">type:feature</span> <span class="tag">prio:P1</span> <span class="tag">area:service</span> <span class="tag">sprint:S3</span> <span class="tag">status:ready</span></td>
+        </tr>
+        <tr data-epic="Channel Analytics"
+            data-priority="P1"
+            data-type="type:feature"
+            data-area="area:service"
+            data-sprint="S3">
+          <td class="num">31</td>
+          <td class="nowrap"><code>US-302</code></td>
+          <td class="story">View Content Type Performance Breakdown</td>
+          <td class="epic">Channel Analytics</td>
+          <td class="nowrap prio">P1</td>
+          <td class="num">5</td>
+          <td class="summary">S3-2: Second most valuable drill-down view</td>
+          <td class="labels"><span class="tag">type:feature</span> <span class="tag">prio:P1</span> <span class="tag">area:service</span> <span class="tag">sprint:S3</span> <span class="tag">status:ready</span></td>
+        </tr>
+        <tr data-epic="Channel Analytics"
+            data-priority="P1"
+            data-type="type:feature"
+            data-area="area:service"
+            data-sprint="S3">
+          <td class="num">32</td>
+          <td class="nowrap"><code>US-303</code></td>
+          <td class="story">View Best Posting Times</td>
+          <td class="epic">Channel Analytics</td>
+          <td class="nowrap prio">P1</td>
+          <td class="num">5</td>
+          <td class="summary">S3-3: High-value insight for creators</td>
+          <td class="labels"><span class="tag">type:feature</span> <span class="tag">prio:P1</span> <span class="tag">area:service</span> <span class="tag">sprint:S3</span> <span class="tag">status:ready</span></td>
+        </tr>
+        <tr data-epic="Channel Analytics"
+            data-priority="P1"
+            data-type="type:feature"
+            data-area="area:service"
+            data-sprint="S3">
+          <td class="num">33</td>
+          <td class="nowrap"><code>US-304</code></td>
+          <td class="story">Compare Instagram vs LinkedIn</td>
+          <td class="epic">Channel Analytics</td>
+          <td class="nowrap prio">P1</td>
+          <td class="num">5</td>
+          <td class="summary">S3-4: Comparison becomes meaningful after per-channel analytics</td>
+          <td class="labels"><span class="tag">type:feature</span> <span class="tag">prio:P1</span> <span class="tag">area:service</span> <span class="tag">sprint:S3</span> <span class="tag">status:ready</span></td>
+        </tr>
+        <tr data-epic="AI Strategist"
+            data-priority="P1"
+            data-type="type:feature"
+            data-area="area:service"
+            data-sprint="S4">
+          <td class="num">34</td>
+          <td class="nowrap"><code>US-401</code></td>
+          <td class="story">Generate Content Performance Summary</td>
+          <td class="epic">AI Strategist</td>
+          <td class="nowrap prio">P1</td>
+          <td class="num">8</td>
+          <td class="summary">S4-1: First brief output (deterministic, no LLM)</td>
+          <td class="labels"><span class="tag">type:feature</span> <span class="tag">prio:P1</span> <span class="tag">area:service</span> <span class="tag">sprint:S4</span> <span class="tag">status:ready</span></td>
+        </tr>
+        <tr data-epic="AI Strategist"
+            data-priority="P1"
+            data-type="type:feature"
+            data-area="area:service"
+            data-sprint="S4">
+          <td class="num">35</td>
+          <td class="nowrap"><code>US-402</code></td>
+          <td class="story">Detect Underperformance Streak</td>
+          <td class="epic">AI Strategist</td>
+          <td class="nowrap prio">P1</td>
+          <td class="num">5</td>
+          <td class="summary">S4-2: Highest-signal insight; prioritize logic</td>
+          <td class="labels"><span class="tag">type:feature</span> <span class="tag">prio:P1</span> <span class="tag">area:service</span> <span class="tag">sprint:S4</span> <span class="tag">status:ready</span></td>
+        </tr>
+        <tr data-epic="AI Strategist"
+            data-priority="P1"
+            data-type="type:feature"
+            data-area="area:service"
+            data-sprint="S4">
+          <td class="num">36</td>
+          <td class="nowrap"><code>US-403</code></td>
+          <td class="story">Get Actionable Content Recommendation</td>
+          <td class="epic">AI Strategist</td>
+          <td class="nowrap prio">P1</td>
+          <td class="num">5</td>
+          <td class="summary">S4-3: Converts insights into next action</td>
+          <td class="labels"><span class="tag">type:feature</span> <span class="tag">prio:P1</span> <span class="tag">area:service</span> <span class="tag">sprint:S4</span> <span class="tag">status:ready</span></td>
+        </tr>
+        <tr data-epic="AI Strategist"
+            data-priority="P1"
+            data-type="type:feature"
+            data-area="area:service"
+            data-sprint="S4">
+          <td class="num">37</td>
+          <td class="nowrap"><code>US-404</code></td>
+          <td class="story">View Confidence Level</td>
+          <td class="epic">AI Strategist</td>
+          <td class="nowrap prio">P1</td>
+          <td class="num">2</td>
+          <td class="summary">S4-4: Adds trustworthiness to brief</td>
+          <td class="labels"><span class="tag">type:feature</span> <span class="tag">prio:P1</span> <span class="tag">area:service</span> <span class="tag">sprint:S4</span> <span class="tag">status:ready</span></td>
+        </tr>
+        <tr data-epic="AI Strategist"
+            data-priority="P1"
+            data-type="type:feature"
+            data-area="area:service"
+            data-sprint="S4">
+          <td class="num">38</td>
+          <td class="nowrap"><code>US-405</code></td>
+          <td class="story">Cache Content Brief Results</td>
+          <td class="epic">AI Strategist</td>
+          <td class="nowrap prio">P1</td>
+          <td class="num">3</td>
+          <td class="summary">S4-5: Performance + cost control</td>
+          <td class="labels"><span class="tag">type:feature</span> <span class="tag">prio:P1</span> <span class="tag">area:service</span> <span class="tag">sprint:S4</span> <span class="tag">status:ready</span></td>
+        </tr>
+        <tr data-epic="Dashboard"
+            data-priority="P1"
+            data-type="type:feature"
+            data-area="area:frontend"
+            data-sprint="S4">
+          <td class="num">39</td>
+          <td class="nowrap"><code>US-707</code></td>
+          <td class="story">View AI Content Brief on Dashboard</td>
+          <td class="epic">Dashboard</td>
+          <td class="nowrap prio">P1</td>
+          <td class="num">5</td>
+          <td class="summary">S4-6: Surface brief after backend is solid</td>
+          <td class="labels"><span class="tag">type:feature</span> <span class="tag">prio:P1</span> <span class="tag">area:frontend</span> <span class="tag">sprint:S4</span> <span class="tag">status:ready</span></td>
+        </tr>
+        <tr data-epic="Foundation"
+            data-priority="P0"
+            data-type="type:feature"
+            data-area="area:service"
+            data-sprint="S4">
+          <td class="num">40</td>
+          <td class="nowrap"><code>US-012</code></td>
+          <td class="story">Design Authentication &amp; Authorization Architecture</td>
+          <td class="epic">Foundation</td>
+          <td class="nowrap prio">P0</td>
+          <td class="num">5</td>
+          <td class="summary">S4-7: Gatekeeper for keys + rate limit (finish before API keys)</td>
+          <td class="labels"><span class="tag">type:feature</span> <span class="tag">prio:P0</span> <span class="tag">area:service</span> <span class="tag">sprint:S4</span> <span class="tag">status:ready</span></td>
+        </tr>
+        <tr data-epic="Auth"
+            data-priority="P0"
+            data-type="type:feature"
+            data-area="area:auth"
+            data-sprint="S4">
+          <td class="num">41</td>
+          <td class="nowrap"><code>US-601</code></td>
+          <td class="story">Authenticate with API Key</td>
+          <td class="epic">Auth</td>
+          <td class="nowrap prio">P0</td>
+          <td class="num">5</td>
+          <td class="summary">S4-8: Enables API consumers use-case</td>
+          <td class="labels"><span class="tag">type:feature</span> <span class="tag">prio:P0</span> <span class="tag">area:auth</span> <span class="tag">sprint:S4</span> <span class="tag">status:ready</span></td>
+        </tr>
+        <tr data-epic="Auth"
+            data-priority="P0"
+            data-type="type:feature"
+            data-area="area:auth"
+            data-sprint="S4">
+          <td class="num">42</td>
+          <td class="nowrap"><code>US-604</code></td>
+          <td class="story">Rate Limiting with Token Bucket</td>
+          <td class="epic">Auth</td>
+          <td class="nowrap prio">P0</td>
+          <td class="num">5</td>
+          <td class="summary">S4-9: Protects platform + aligns with spec</td>
+          <td class="labels"><span class="tag">type:feature</span> <span class="tag">prio:P0</span> <span class="tag">area:auth</span> <span class="tag">sprint:S4</span> <span class="tag">status:ready</span></td>
+        </tr>
+        <tr data-epic="Auth"
+            data-priority="P0"
+            data-type="type:feature"
+            data-area="area:auth"
+            data-sprint="S4">
+          <td class="num">43</td>
+          <td class="nowrap"><code>US-602</code></td>
+          <td class="story">Authenticate with JWT</td>
+          <td class="epic">Auth</td>
+          <td class="nowrap prio">P0</td>
+          <td class="num">5</td>
+          <td class="summary">S4-10: Dashboard auth once you implement login later</td>
+          <td class="labels"><span class="tag">type:feature</span> <span class="tag">prio:P0</span> <span class="tag">area:auth</span> <span class="tag">sprint:S4</span> <span class="tag">status:ready</span></td>
+        </tr>
+        <tr data-epic="Auth"
+            data-priority="P1"
+            data-type="type:feature"
+            data-area="area:auth"
+            data-sprint="S4">
+          <td class="num">44</td>
+          <td class="nowrap"><code>US-603</code></td>
+          <td class="story">Enforce API Key Scopes</td>
+          <td class="epic">Auth</td>
+          <td class="nowrap prio">P1</td>
+          <td class="num">3</td>
+          <td class="summary">S4-11: Scope control after key auth works</td>
+          <td class="labels"><span class="tag">type:feature</span> <span class="tag">prio:P1</span> <span class="tag">area:auth</span> <span class="tag">sprint:S4</span> <span class="tag">status:ready</span></td>
+        </tr>
+        <tr data-epic="API Keys"
+            data-priority="P1"
+            data-type="type:feature"
+            data-area="area:auth"
+            data-sprint="S4">
+          <td class="num">45</td>
+          <td class="nowrap"><code>US-501</code></td>
+          <td class="story">Create API Key</td>
+          <td class="epic">API Keys</td>
+          <td class="nowrap prio">P1</td>
+          <td class="num">5</td>
+          <td class="summary">S4-12: Create key (show once)</td>
+          <td class="labels"><span class="tag">type:feature</span> <span class="tag">prio:P1</span> <span class="tag">area:auth</span> <span class="tag">sprint:S4</span> <span class="tag">status:ready</span></td>
+        </tr>
+        <tr data-epic="API Keys"
+            data-priority="P1"
+            data-type="type:feature"
+            data-area="area:auth"
+            data-sprint="S4">
+          <td class="num">46</td>
+          <td class="nowrap"><code>US-502</code></td>
+          <td class="story">List API Keys</td>
+          <td class="epic">API Keys</td>
+          <td class="nowrap prio">P1</td>
+          <td class="num">2</td>
+          <td class="summary">S4-13: Manage keys</td>
+          <td class="labels"><span class="tag">type:feature</span> <span class="tag">prio:P1</span> <span class="tag">area:auth</span> <span class="tag">sprint:S4</span> <span class="tag">status:ready</span></td>
+        </tr>
+        <tr data-epic="API Keys"
+            data-priority="P1"
+            data-type="type:feature"
+            data-area="area:auth"
+            data-sprint="S4">
+          <td class="num">47</td>
+          <td class="nowrap"><code>US-503</code></td>
+          <td class="story">Revoke API Key</td>
+          <td class="epic">API Keys</td>
+          <td class="nowrap prio">P1</td>
+          <td class="num">3</td>
+          <td class="summary">S4-14: Security must-have for API keys</td>
+          <td class="labels"><span class="tag">type:feature</span> <span class="tag">prio:P1</span> <span class="tag">area:auth</span> <span class="tag">sprint:S4</span> <span class="tag">status:ready</span></td>
+        </tr>
+        <tr data-epic="Foundation"
+            data-priority="P1"
+            data-type="type:feature"
+            data-area="area:service"
+            data-sprint="S5">
+          <td class="num">48</td>
+          <td class="nowrap"><code>US-008</code></td>
+          <td class="story">Design Connector Architecture &amp; Base Interface</td>
+          <td class="epic">Foundation</td>
+          <td class="nowrap prio">P1</td>
+          <td class="num">5</td>
+          <td class="summary">S5-1: Connector abstraction before implementing platforms</td>
+          <td class="labels"><span class="tag">type:feature</span> <span class="tag">prio:P1</span> <span class="tag">area:service</span> <span class="tag">sprint:S5</span> <span class="tag">status:ready</span></td>
+        </tr>
+        <tr data-epic="Foundation"
+            data-priority="P1"
+            data-type="type:feature"
+            data-area="area:service"
+            data-sprint="S5">
+          <td class="num">49</td>
+          <td class="nowrap"><code>US-009</code></td>
+          <td class="story">Design Background Job Infrastructure (BullMQ)</td>
+          <td class="epic">Foundation</td>
+          <td class="nowrap prio">P1</td>
+          <td class="num">5</td>
+          <td class="summary">S5-2: Job infra before sync implementation</td>
+          <td class="labels"><span class="tag">type:feature</span> <span class="tag">prio:P1</span> <span class="tag">area:service</span> <span class="tag">sprint:S5</span> <span class="tag">status:ready</span></td>
+        </tr>
+        <tr data-epic="Connectors"
+            data-priority="P1"
+            data-type="type:feature"
+            data-area="area:connectors"
+            data-sprint="S5">
+          <td class="num">50</td>
+          <td class="nowrap"><code>US-801</code></td>
+          <td class="story">Instagram Connector Fetches Posts and Metrics</td>
+          <td class="epic">Connectors</td>
+          <td class="nowrap prio">P1</td>
+          <td class="num">8</td>
+          <td class="summary">S5-3: Real ingestion path (IG)</td>
+          <td class="labels"><span class="tag">type:feature</span> <span class="tag">prio:P1</span> <span class="tag">area:connectors</span> <span class="tag">sprint:S5</span> <span class="tag">status:ready</span></td>
+        </tr>
+        <tr data-epic="Connectors"
+            data-priority="P1"
+            data-type="type:feature"
+            data-area="area:connectors"
+            data-sprint="S5">
+          <td class="num">51</td>
+          <td class="nowrap"><code>US-802</code></td>
+          <td class="story">LinkedIn Connector Fetches Posts and Metrics</td>
+          <td class="epic">Connectors</td>
+          <td class="nowrap prio">P1</td>
+          <td class="num">8</td>
+          <td class="summary">S5-4: Real ingestion path (LI)</td>
+          <td class="labels"><span class="tag">type:feature</span> <span class="tag">prio:P1</span> <span class="tag">area:connectors</span> <span class="tag">sprint:S5</span> <span class="tag">status:ready</span></td>
+        </tr>
+        <tr data-epic="Connectors"
+            data-priority="P1"
+            data-type="type:feature"
+            data-area="area:jobs"
+            data-sprint="S5">
+          <td class="num">52</td>
+          <td class="nowrap"><code>US-803</code></td>
+          <td class="story">Automated Metric Sync Job</td>
+          <td class="epic">Connectors</td>
+          <td class="nowrap prio">P1</td>
+          <td class="num">5</td>
+          <td class="summary">S5-5: Turn on scheduled sync once connectors work</td>
+          <td class="labels"><span class="tag">type:feature</span> <span class="tag">prio:P1</span> <span class="tag">area:jobs</span> <span class="tag">sprint:S5</span> <span class="tag">status:ready</span></td>
+        </tr>
+        <tr data-epic="Connectors"
+            data-priority="P1"
+            data-type="type:feature"
+            data-area="area:connectors"
+            data-sprint="S5">
+          <td class="num">53</td>
+          <td class="nowrap"><code>US-804</code></td>
+          <td class="story">Generate Analytics Snapshots</td>
+          <td class="epic">Connectors</td>
+          <td class="nowrap prio">P1</td>
+          <td class="num">5</td>
+          <td class="summary">S5-6: Perf optimization for longer time ranges</td>
+          <td class="labels"><span class="tag">type:feature</span> <span class="tag">prio:P1</span> <span class="tag">area:connectors</span> <span class="tag">sprint:S5</span> <span class="tag">status:ready</span></td>
+        </tr>
+        <tr data-epic="Quality"
+            data-priority="P2"
+            data-type="type:docs"
+            data-area="area:docs"
+            data-sprint="S6">
+          <td class="num">54</td>
+          <td class="nowrap"><code>US-902</code></td>
+          <td class="story">OpenAPI Documentation</td>
+          <td class="epic">Quality</td>
+          <td class="nowrap prio">P2</td>
+          <td class="num">5</td>
+          <td class="summary">S6-1: Docs after endpoints stabilize</td>
+          <td class="labels"><span class="tag">type:docs</span> <span class="tag">prio:P2</span> <span class="tag">area:docs</span> <span class="tag">sprint:S6</span> <span class="tag">status:ready</span></td>
+        </tr>
+        <tr data-epic="Foundation"
+            data-priority="P2"
+            data-type="type:feature"
+            data-area="area:service"
+            data-sprint="S6">
+          <td class="num">55</td>
+          <td class="nowrap"><code>US-014</code></td>
+          <td class="story">Design CI/CD Pipeline</td>
+          <td class="epic">Foundation</td>
+          <td class="nowrap prio">P2</td>
+          <td class="num">3</td>
+          <td class="summary">S6-2: CI once tests/lint/build are stable</td>
+          <td class="labels"><span class="tag">type:feature</span> <span class="tag">prio:P2</span> <span class="tag">area:service</span> <span class="tag">sprint:S6</span> <span class="tag">status:ready</span></td>
+        </tr>
+        <tr data-epic="Quality"
+            data-priority="P2"
+            data-type="type:chore"
+            data-area="area:service"
+            data-sprint="S6">
+          <td class="num">56</td>
+          <td class="nowrap"><code>US-901</code></td>
+          <td class="story">Achieve 80%+ Test Coverage</td>
+          <td class="epic">Quality</td>
+          <td class="nowrap prio">P2</td>
+          <td class="num">8</td>
+          <td class="summary">S6-3: Hardening pass near the end</td>
+          <td class="labels"><span class="tag">type:chore</span> <span class="tag">prio:P2</span> <span class="tag">area:service</span> <span class="tag">sprint:S6</span> <span class="tag">status:ready</span></td>
+        </tr>
+        <tr data-epic="Quality"
+            data-priority="P2"
+            data-type="type:chore"
+            data-area="area:ci-cd"
+            data-sprint="S6">
+          <td class="num">57</td>
+          <td class="nowrap"><code>US-904</code></td>
+          <td class="story">CI/CD Pipeline</td>
+          <td class="epic">Quality</td>
+          <td class="nowrap prio">P2</td>
+          <td class="num">3</td>
+          <td class="summary">S6-4: If this is duplicate of US-014, merge; else finalize release pipeline</td>
+          <td class="labels"><span class="tag">type:chore</span> <span class="tag">prio:P2</span> <span class="tag">area:ci-cd</span> <span class="tag">sprint:S6</span> <span class="tag">status:ready</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+<script>
+(function() {
+  const q = document.getElementById('q');
+  const epic = document.getElementById('epic');
+  const priority = document.getElementById('priority');
+  const type = document.getElementById('type');
+  const area = document.getElementById('area');
+  const sprint = document.getElementById('sprint');
+  const reset = document.getElementById('reset');
+  const stats = document.getElementById('stats');
+  const rows = Array.from(document.querySelectorAll('#tbody tr'));
+
+  function norm(s) {
+    return (s || '').toString().trim().toLowerCase();
+  }
+
+  function apply() {
+    const qv = norm(q.value);
+    const ev = epic.value;
+    const pv = priority.value;
+    const tv = type.value;
+    const av = area.value;
+    const sv = sprint.value;
+
+    let shown = 0;
+
+    for (const r of rows) {
+      const matchEpic = !ev || r.dataset.epic === ev;
+      const matchPrio = !pv || r.dataset.priority === pv;
+      const matchType = !tv || r.dataset.type === tv;
+      const matchArea = !av || r.dataset.area === av;
+      const matchSprint = !sv || r.dataset.sprint === sv;
+
+      let matchQ = true;
+      if (qv) {
+        const text = norm(r.innerText);
+        matchQ = text.includes(qv);
+      }
+
+      const ok = matchEpic && matchPrio && matchType && matchArea && matchSprint && matchQ;
+      r.classList.toggle('hidden', !ok);
+      if (ok) shown++;
+    }
+
+    stats.textContent = 'Showing ' + shown + ' of ' + rows.length;
+  }
+
+  function resetAll() {
+    q.value = '';
+    epic.value = '';
+    priority.value = '';
+    type.value = '';
+    area.value = '';
+    sprint.value = '';
+    apply();
+  }
+
+  q.addEventListener('input', apply);
+  epic.addEventListener('change', apply);
+  priority.addEventListener('change', apply);
+  type.addEventListener('change', apply);
+  area.addEventListener('change', apply);
+  sprint.addEventListener('change', apply);
+  reset.addEventListener('click', resetAll);
+
+  apply();
+})();
+</script>
+</body>
+</html>
